@@ -20,5 +20,22 @@ services:
     depends_on:
       - backend
 
+  # Proxy na porta 80 para http://poupadinha.home
+  # Uso: docker compose --profile gateway up -d
+  # Requer que outras apps na :80 passem para outra porta (ex. 8081)
+  gateway:
+    profiles: ["gateway"]
+    image: nginx:1.27-alpine
+    container_name: poupadinha-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - frontend
+
 volumes:
   poupadinha-data:

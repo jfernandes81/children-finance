@@ -18,6 +18,26 @@ docker compose up --build -d
 
 Abre: [http://localhost:8080](http://localhost:8080)
 
+### Nome interno `poupadinha.home`
+
+1. No router (DNS local / “Local DNS” / “Static Host Mapping”), cria:
+   - **Host:** `poupadinha.home`
+   - **IP:** IP da máquina Docker (ex. `192.168.68.54`)
+2. Na máquina Docker, se a porta 80 já estiver ocupada por outra app, move essa app para `8081` e sobe o gateway:
+
+```bash
+# exemplo: app Finanças a libertar a porta 80
+cd ~/finance-app && APP_PORT=8081 docker compose up -d
+
+cd ~/apps/children-finance
+git pull
+docker compose --profile gateway up -d --build
+```
+
+Depois abre: [http://poupadinha.home](http://poupadinha.home)
+
+Sem gateway, podes usar sempre: `http://poupadinha.home:8080` (depois do DNS).
+
 Para parar:
 
 ```bash
