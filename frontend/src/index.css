@@ -1,0 +1,457 @@
+:root {
+  --bg-top: #1a4d6d;
+  --bg-bottom: #0f2e42;
+  --surface: rgba(255, 255, 255, 0.94);
+  --ink: #13212b;
+  --muted: #5a6d78;
+  --accent: #2bbbad;
+  --accent-eva: #e85d4c;
+  --accent-beatriz: #3b82c4;
+  --income: #1f9d6a;
+  --expense: #d64545;
+  --shadow: 0 12px 40px rgba(8, 28, 42, 0.28);
+  --radius: 18px;
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: var(--ink);
+  line-height: 1.4;
+  font-weight: 500;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  max-width: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  width: 100%;
+  background:
+    radial-gradient(120% 80% at 10% -10%, #2f7ea3 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, #1f6b5a 0%, transparent 50%),
+    linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
+  background-attachment: fixed;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+.page {
+  width: 100%;
+  max-width: 440px;
+  min-width: 0;
+  padding: 1.25rem 1.1rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  overflow-x: hidden;
+}
+
+.page.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.brand {
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.6rem, 11vw, 3.5rem);
+  letter-spacing: -0.04em;
+  color: #fff;
+  margin: 0;
+  line-height: 0.95;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+}
+
+.brand-block h1,
+.topbar h1 {
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  margin: 0.2rem 0 0;
+  color: #fff;
+  font-size: 1.55rem;
+}
+
+.brand-block .lede,
+.eyebrow,
+.muted {
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0.35rem 0 0;
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.balance-hero {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.25rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--child-accent, var(--accent));
+}
+
+.balance-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.balance-value {
+  font-family: "Nunito", sans-serif;
+  font-size: clamp(2.2rem, 9vw, 2.8rem);
+  font-weight: 800;
+  color: var(--ink) !important;
+  margin-top: 0.25rem !important;
+  letter-spacing: -0.02em;
+}
+
+.flash {
+  margin-top: 0.6rem !important;
+  color: var(--income) !important;
+  font-weight: 700;
+}
+
+.read-only-hint {
+  margin-top: 0.65rem !important;
+  font-size: 0.85rem !important;
+  color: var(--muted) !important;
+}
+
+.flash-banner {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(31, 157, 106, 0.2);
+  color: #b7f5d4;
+  font-weight: 700;
+  text-align: center;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.card-form {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: var(--shadow);
+}
+
+.card-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card-form input,
+.card-form select {
+  font: inherit;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0.85rem 0.9rem;
+  border-radius: 12px;
+  border: 1.5px solid #d5dee4;
+  background: #fff;
+  color: var(--ink);
+  box-sizing: border-box;
+}
+
+.card-form input:focus,
+.card-form select:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, white);
+  border-color: var(--accent);
+}
+
+.form-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-head h2,
+.history h2 {
+  font-family: "Nunito", sans-serif;
+  margin: 0;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.card-form .form-head h2 {
+  color: var(--ink);
+}
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #35cfc0, #1fa896);
+  color: #04352f;
+}
+
+.btn.income {
+  background: linear-gradient(135deg, #34c98a, #1f9d6a);
+  color: #043022;
+  min-height: 3.4rem;
+  font-size: 1.05rem;
+}
+
+.btn.expense {
+  background: linear-gradient(135deg, #f07272, #d64545);
+  color: #3a0c0c;
+  min-height: 3.4rem;
+  font-size: 1.05rem;
+}
+
+.btn.ghost {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.btn.ghost.full {
+  width: 100%;
+  padding: 0.85rem 1rem;
+}
+
+.password-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.tx-list li {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  box-shadow: 0 6px 18px rgba(8, 28, 42, 0.12);
+}
+
+.tx-list li.tx-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+.tx-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tx-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btn.link {
+  background: transparent;
+  color: #1a4d6d;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.btn.link.danger {
+  color: var(--expense);
+}
+
+.tx-list li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tx-list strong {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.tx-list span,
+.tx-list em {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.tx-list .pos {
+  color: var(--income);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tx-list .neg {
+  color: var(--expense);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.error {
+  color: #b42318;
+  background: #fee4e2;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.children-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.child-card {
+  text-align: left;
+  border: none;
+  border-radius: var(--radius);
+  padding: 1.1rem 1.15rem 1.1rem 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: transform 0.18s ease;
+}
+
+.child-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--child-accent, var(--accent));
+}
+
+.child-card:active {
+  transform: scale(0.985);
+}
+
+.child-card.active {
+  outline: 2px solid var(--child-accent, var(--accent));
+}
+
+.child-name {
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.child-balance {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.child-card .hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.parent-hint {
+  margin: 0 !important;
+  font-size: 0.9rem;
+}
+
+.login-page {
+  padding-top: 2.5rem;
+}
+
+@media (min-width: 480px) {
+  .page {
+    padding-top: 2rem;
+  }
+}

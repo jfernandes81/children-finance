@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    container_name: poupadinha-api
+    restart: unless-stopped
+    environment:
+      PORT: "3001"
+      JWT_SECRET: ${JWT_SECRET:-poupadinha-change-me-in-production}
+    volumes:
+      - poupadinha-data:/app/data
+    expose:
+      - "3001"
+
+  frontend:
+    build: ./frontend
+    container_name: poupadinha-web
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      - backend
+
+volumes:
+  poupadinha-data:

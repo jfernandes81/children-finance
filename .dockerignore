@@ -1,0 +1,6 @@
+.DS_Store
+.env
+*.db
+node_modules/
+dist/
+backend/data/
