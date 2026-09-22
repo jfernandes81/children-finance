@@ -37,5 +37,20 @@ services:
     depends_on:
       - frontend
 
+  # DNS local (para Deco / routers sem host mapping)
+  # No Deco: Mais > Avançado > Servidor DHCP > DNS = 192.168.68.54
+  dns:
+    profiles: ["gateway"]
+    image: dockurr/dnsmasq:2.90
+    container_name: poupadinha-dns
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - ./gateway/dnsmasq.conf:/etc/dnsmasq.conf:ro
+    cap_add:
+      - NET_ADMIN
+
 volumes:
   poupadinha-data:
