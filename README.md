@@ -18,30 +18,22 @@ docker compose up --build -d
 
 Abre: [http://localhost:8080](http://localhost:8080)
 
-### Nome interno `poupadinha.home` (TP-Link Deco)
+### Nome amigável (TP-Link Deco)
 
-O Deco **não permite** criar nomes locais tipo `poupadinha.home → IP`. Por isso a stack inclui um DNS (`dnsmasq`) na máquina Docker.
+O Deco **não permite** criar `poupadinha.home → IP` ([limitação conhecida](https://community.tp-link.com/us/home/forum/topic/847084)).
 
-1. Garante IP fixo da máquina no Deco (ex. `192.168.68.54`) — reserva DHCP.
-2. Na máquina Docker:
+**Opção imediata (recomendada):** usa sslip.io (resolve sozinho, sem mexer no Deco):
+
+[http://poupadinha.192.168.68.54.sslip.io](http://poupadinha.192.168.68.54.sslip.io)
+
+**Atalho direto:** [http://192.168.68.54:8080](http://192.168.68.54:8080)
+
+Na máquina Docker (gateway na porta 80):
 
 ```bash
-# Se a porta 80 estiver ocupada (ex. Finanças), move-a para 8081:
-cd ~/finance-app && APP_PORT=8081 docker compose up -d
-
-cd ~/apps/children-finance
-git pull
-docker compose --profile gateway up -d --build
+cd ~/finance-app && APP_PORT=8081 docker compose up -d   # se Finanças ocupava a :80
+cd ~/apps/children-finance && git pull && docker compose --profile gateway up -d --build
 ```
-
-3. No **app Deco** (Wi‑Fi Deco, conta de dono):
-   - **Mais → Avançado → Servidor DHCP**
-   - **DNS primário:** `192.168.68.54`
-   - **DNS secundário:** `1.1.1.1` (opcional)
-   - Guardar
-4. Reinicia o Wi‑Fi do telemóvel (ou “Renovar lease” DHCP) e abre: [http://poupadinha.home](http://poupadinha.home)
-
-Alternativa sem DNS Deco: `http://192.168.68.54:8080`
 
 Para parar:
 
