@@ -19,10 +19,12 @@ import {
 type AuthState = {
   user: User | null;
   balance: number | null;
+  unpaidTotal: number | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   setBalance: (b: number | null) => void;
+  setUnpaidTotal: (v: number | null) => void;
   refresh: () => Promise<void>;
 };
 
@@ -31,12 +33,14 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser());
   const [balance, setBalance] = useState<number | null>(null);
+  const [unpaidTotal, setUnpaidTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     if (!getToken()) {
       setUser(null);
       setBalance(null);
+      setUnpaidTotal(null);
       setLoading(false);
       return;
     }
@@ -44,11 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await fetchMe();
       setUser(data.user);
       setBalance(data.balance);
+      setUnpaidTotal(data.unpaidTotal);
       saveSession(getToken()!, data.user);
     } catch {
       clearSession();
       setUser(null);
       setBalance(null);
+      setUnpaidTotal(null);
     } finally {
       setLoading(false);
     }
@@ -63,17 +69,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveSession(data.token, data.user);
     setUser(data.user);
     setBalance(data.balance);
+    setUnpaidTotal(data.unpaidTotal);
   };
 
   const logout = () => {
     clearSession();
     setUser(null);
     setBalance(null);
+    setUnpaidTotal(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, balance, loading, login, logout, setBalance, refresh }}
+      value={{
+        user,
+        balance,
+        unpaidTotal,
+        loading,
+        login,
+        logout,
+        setBalance,
+        setUnpaidTotal,
+        refresh,
+      }}
     >
       {children}
     </AuthContext.Provider>

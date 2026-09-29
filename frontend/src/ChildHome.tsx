@@ -15,13 +15,14 @@ import { ChangePasswordPanel } from "./ChangePasswordPanel";
 type Mode = "income" | "expense" | null;
 
 export function ChildHome() {
-  const { user, balance, logout, setBalance } = useAuth();
+  const { user, balance, unpaidTotal, logout, setBalance, setUnpaidTotal } = useAuth();
   const [mode, setMode] = useState<Mode>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categoryId, setCategoryId] = useState<number | "">("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<"paid" | "unpaid">("paid");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState("");
@@ -36,6 +37,7 @@ export function ChildHome() {
 
   useEffect(() => {
     if (!mode) return;
+    setPaymentStatus("paid");
     void fetchCategories(mode)
       .then((cats) => {
         setCategories(cats);
@@ -54,12 +56,21 @@ export function ChildHome() {
         categoryId: Number(categoryId),
         amount: Number(amount.replace(",", ".")),
         note: note.trim() || undefined,
+        paymentStatus,
       });
       setBalance(result.balance);
-      setFlash(mode === "income" ? "Recebido!" : "Gasto registado!");
+      setUnpaidTotal(result.unpaidTotal);
+      setFlash(
+        paymentStatus === "unpaid"
+          ? "Registado como por pagar!"
+          : mode === "income"
+            ? "Recebido!"
+            : "Gasto registado!"
+      );
       setMode(null);
       setAmount("");
       setNote("");
+      setPaymentStatus("paid");
       await loadHistory();
       setTimeout(() => setFlash(""), 2000);
     } catch (err) {
@@ -87,6 +98,9 @@ export function ChildHome() {
       >
         <p>O teu saldo</p>
         <p className="balance-value">{formatEuro(balance ?? 0)}</p>
+        {(unpaidTotal ?? 0) > 0 && (
+          <p className="unpaid-summary">Por pagar: {formatEuro(unpaidTotal ?? 0)}</p>
+        )}
         {flash && <p className="flash">{flash}</p>}
         <p className="read-only-hint">Podes adicionar. Só os pais podem editar ou apagar.</p>
       </section>
@@ -133,6 +147,16 @@ export function ChildHome() {
             </select>
           </label>
           <label>
+            Estado
+            <select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value as "paid" | "unpaid")}
+            >
+              <option value="paid">Pago</option>
+              <option value="unpaid">Por pagar</option>
+            </select>
+          </label>
+          <label>
             Nota (opcional)
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="ex.: gelado" />
           </label>
@@ -158,7 +182,12 @@ export function ChildHome() {
             {transactions.map((t) => (
               <li key={t.id}>
                 <div>
-                  <strong>{t.categoryName}</strong>
+                  <strong>
+                    {t.categoryName}
+                    {t.paymentStatus === "unpaid" && (
+                      <span className="badge unpaid">Por pagar</span>
+                    )}
+                  </strong>
                   <span>{formatDate(t.createdAt)}</span>
                   {t.note && <em>{t.note}</em>}
                 </div>

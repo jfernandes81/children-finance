@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { db, initSchema, getBalance } from "./db.js";
+import { db, initSchema, getBalance, getUnpaidTotal } from "./db.js";
 import { AuthedRequest, requireAuth, requireParent, signToken } from "./auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -52,6 +52,7 @@ app.post("/api/auth/login", (req, res) => {
     token: signToken(payload),
     user: payload,
     balance: user.role === "child" ? getBalance(user.id) : null,
+    unpaidTotal: user.role === "child" ? getUnpaidTotal(user.id) : null,
   });
 });
 
@@ -60,6 +61,7 @@ app.get("/api/me", requireAuth, (req: AuthedRequest, res) => {
   res.json({
     user,
     balance: user.role === "child" ? getBalance(user.id) : null,
+    unpaidTotal: user.role === "child" ? getUnpaidTotal(user.id) : null,
   });
 });
 
@@ -104,6 +106,7 @@ app.get("/api/children", requireAuth, requireParent, (_req, res) => {
       username: c.username,
       displayName: c.display_name,
       balance: getBalance(c.id),
+      unpaidTotal: getUnpaidTotal(c.id),
     }))
   );
 });
@@ -121,6 +124,20 @@ app.get("/api/categories", requireAuth, (req, res) => {
   res.json(rows);
 });
 
+const TX_SELECT = `
+  SELECT t.id, t.user_id AS userId, u.display_name AS displayName,
+         t.amount, t.note, t.created_at AS createdAt,
+         t.payment_status AS paymentStatus,
+         c.id AS categoryId, c.name AS categoryName, c.type AS categoryType
+  FROM transactions t
+  JOIN users u ON u.id = t.user_id
+  JOIN categories c ON c.id = t.category_id
+`;
+
+function normalizePaymentStatus(value: unknown): "paid" | "unpaid" {
+  return value === "unpaid" ? "unpaid" : "paid";
+}
+
 app.get("/api/transactions", requireAuth, (req: AuthedRequest, res) => {
   const user = req.user!;
   const requestedUserId = req.query.userId ? Number(req.query.userId) : undefined;
@@ -131,16 +148,10 @@ app.get("/api/transactions", requireAuth, (req: AuthedRequest, res) => {
   } else if (requestedUserId) {
     targetUserId = requestedUserId;
   } else {
-    // parent sem filtro: todas as filhas
     const rows = db
       .prepare(
         `
-        SELECT t.id, t.user_id AS userId, u.display_name AS displayName,
-               t.amount, t.note, t.created_at AS createdAt,
-               c.id AS categoryId, c.name AS categoryName, c.type AS categoryType
-        FROM transactions t
-        JOIN users u ON u.id = t.user_id
-        JOIN categories c ON c.id = t.category_id
+        ${TX_SELECT}
         WHERE u.role = 'child'
         ORDER BY t.created_at DESC
         LIMIT 100
@@ -153,12 +164,7 @@ app.get("/api/transactions", requireAuth, (req: AuthedRequest, res) => {
   const rows = db
     .prepare(
       `
-      SELECT t.id, t.user_id AS userId, u.display_name AS displayName,
-             t.amount, t.note, t.created_at AS createdAt,
-             c.id AS categoryId, c.name AS categoryName, c.type AS categoryType
-      FROM transactions t
-      JOIN users u ON u.id = t.user_id
-      JOIN categories c ON c.id = t.category_id
+      ${TX_SELECT}
       WHERE t.user_id = ?
       ORDER BY t.created_at DESC
       LIMIT 100
@@ -178,10 +184,11 @@ app.post("/api/transactions", requireAuth, (req: AuthedRequest, res) => {
     });
   }
 
-  const { categoryId, amount, note } = req.body as {
+  const { categoryId, amount, note, paymentStatus } = req.body as {
     categoryId?: number;
     amount?: number;
     note?: string;
+    paymentStatus?: string;
   };
 
   if (!categoryId || amount == null || Number(amount) <= 0) {
@@ -196,43 +203,34 @@ app.post("/api/transactions", requireAuth, (req: AuthedRequest, res) => {
   }
 
   const targetUserId = user.id;
+  const status = normalizePaymentStatus(paymentStatus);
 
   const result = db
     .prepare(
       `
-      INSERT INTO transactions (user_id, category_id, amount, note, created_by)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO transactions (user_id, category_id, amount, note, payment_status, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)
     `
     )
-    .run(targetUserId, categoryId, Number(amount), note?.trim() || null, user.id);
+    .run(targetUserId, categoryId, Number(amount), note?.trim() || null, status, user.id);
 
-  const created = db
-    .prepare(
-      `
-      SELECT t.id, t.user_id AS userId, u.display_name AS displayName,
-             t.amount, t.note, t.created_at AS createdAt,
-             c.id AS categoryId, c.name AS categoryName, c.type AS categoryType
-      FROM transactions t
-      JOIN users u ON u.id = t.user_id
-      JOIN categories c ON c.id = t.category_id
-      WHERE t.id = ?
-    `
-    )
-    .get(result.lastInsertRowid);
+  const created = db.prepare(`${TX_SELECT} WHERE t.id = ?`).get(result.lastInsertRowid);
 
   res.status(201).json({
     transaction: created,
     balance: getBalance(targetUserId),
+    unpaidTotal: getUnpaidTotal(targetUserId),
   });
 });
 
 app.patch("/api/transactions/:id", requireAuth, requireParent, (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const { categoryId, amount, note, userId } = req.body as {
+  const { categoryId, amount, note, userId, paymentStatus } = req.body as {
     categoryId?: number;
     amount?: number;
     note?: string;
     userId?: number;
+    paymentStatus?: string;
   };
 
   const existing = db
@@ -250,9 +248,7 @@ app.patch("/api/transactions/:id", requireAuth, requireParent, (req: AuthedReque
     return res.status(400).json({ error: "Indica a filha (userId)" });
   }
 
-  const category = db
-    .prepare("SELECT id FROM categories WHERE id = ?")
-    .get(categoryId);
+  const category = db.prepare("SELECT id FROM categories WHERE id = ?").get(categoryId);
   if (!category) {
     return res.status(400).json({ error: "Categoria inválida" });
   }
@@ -265,32 +261,22 @@ app.patch("/api/transactions/:id", requireAuth, requireParent, (req: AuthedReque
   }
 
   const previousUserId = existing.user_id;
+  const status = normalizePaymentStatus(paymentStatus);
 
   db.prepare(
     `
     UPDATE transactions
-    SET user_id = ?, category_id = ?, amount = ?, note = ?
+    SET user_id = ?, category_id = ?, amount = ?, note = ?, payment_status = ?
     WHERE id = ?
   `
-  ).run(userId, categoryId, Number(amount), note?.trim() || null, id);
+  ).run(userId, categoryId, Number(amount), note?.trim() || null, status, id);
 
-  const updated = db
-    .prepare(
-      `
-      SELECT t.id, t.user_id AS userId, u.display_name AS displayName,
-             t.amount, t.note, t.created_at AS createdAt,
-             c.id AS categoryId, c.name AS categoryName, c.type AS categoryType
-      FROM transactions t
-      JOIN users u ON u.id = t.user_id
-      JOIN categories c ON c.id = t.category_id
-      WHERE t.id = ?
-    `
-    )
-    .get(id);
+  const updated = db.prepare(`${TX_SELECT} WHERE t.id = ?`).get(id);
 
   res.json({
     transaction: updated,
     balance: getBalance(userId),
+    unpaidTotal: getUnpaidTotal(userId),
     previousBalance: previousUserId !== userId ? getBalance(previousUserId) : undefined,
   });
 });

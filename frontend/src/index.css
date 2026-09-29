@@ -151,6 +151,35 @@ body {
   font-weight: 700;
 }
 
+.unpaid-summary {
+  margin-top: 0.45rem !important;
+  color: #b45309 !important;
+  font-weight: 700;
+  font-size: 0.95rem !important;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.badge.unpaid {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.child-unpaid {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
+
 .read-only-hint {
   margin-top: 0.65rem !important;
   font-size: 0.85rem !important;

@@ -12,7 +12,7 @@ initSchema();
 
 const userCount = (db.prepare("SELECT COUNT(*) AS c FROM users").get() as { c: number }).c;
 if (userCount > 0) {
-  console.log("BD já tem dados — seed ignorado.");
+  console.log("BD já tem dados — seed de utilizadores ignorado (categorias sincronizadas).");
   console.log("Para recriar: apaga backend/data/finance.db e corre npm run seed.");
   process.exit(0);
 }
@@ -27,23 +27,6 @@ const insertUser = db.prepare(`
 insertUser.run("pais", hash("CasaPais"), "parent", "Pais");
 insertUser.run("eva", hash("Unicornio"), "child", "Eva");
 insertUser.run("beatriz", hash("Borboleta"), "child", "Beatriz");
-
-const insertCategory = db.prepare(`
-  INSERT INTO categories (name, type) VALUES (?, ?)
-`);
-
-const categories: [string, "income" | "expense"][] = [
-  ["Mesada", "income"],
-  ["Presente", "income"],
-  ["Outro (receita)", "income"],
-  ["Brinquedos", "expense"],
-  ["Doces", "expense"],
-  ["Outro (despesa)", "expense"],
-];
-
-for (const [name, type] of categories) {
-  insertCategory.run(name, type);
-}
 
 console.log("Seed concluído.");
 console.log("  pais / CasaPais     (parent)");

@@ -23,6 +23,7 @@ export type Transaction = {
   categoryId: number;
   categoryName: string;
   categoryType: "income" | "expense";
+  paymentStatus: "paid" | "unpaid";
 };
 
 export type ChildSummary = {
@@ -30,6 +31,7 @@ export type ChildSummary = {
   username: string;
   displayName: string;
   balance: number;
+  unpaidTotal: number;
 };
 
 const TOKEN_KEY = "cf_token";
@@ -76,7 +78,12 @@ async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export function login(username: string, password: string) {
-  return api<{ token: string; user: User; balance: number | null }>("/api/auth/login", {
+  return api<{
+    token: string;
+    user: User;
+    balance: number | null;
+    unpaidTotal: number | null;
+  }>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
@@ -90,7 +97,7 @@ export function changePassword(currentPassword: string, newPassword: string) {
 }
 
 export function fetchMe() {
-  return api<{ user: User; balance: number | null }>("/api/me");
+  return api<{ user: User; balance: number | null; unpaidTotal: number | null }>("/api/me");
 }
 
 export function fetchChildren() {
@@ -112,21 +119,34 @@ export function createTransaction(body: {
   amount: number;
   note?: string;
   userId?: number;
+  paymentStatus?: "paid" | "unpaid";
 }) {
-  return api<{ transaction: Transaction; balance: number }>("/api/transactions", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  return api<{ transaction: Transaction; balance: number; unpaidTotal: number }>(
+    "/api/transactions",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
 }
 
 export function updateTransaction(
   id: number,
-  body: { categoryId: number; amount: number; note?: string; userId: number }
+  body: {
+    categoryId: number;
+    amount: number;
+    note?: string;
+    userId: number;
+    paymentStatus?: "paid" | "unpaid";
+  }
 ) {
-  return api<{ transaction: Transaction; balance: number }>(`/api/transactions/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(body),
-  });
+  return api<{ transaction: Transaction; balance: number; unpaidTotal: number }>(
+    `/api/transactions/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }
+  );
 }
 
 export function deleteTransaction(id: number) {

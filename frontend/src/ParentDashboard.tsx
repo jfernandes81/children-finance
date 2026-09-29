@@ -30,6 +30,7 @@ export function ParentDashboard() {
   const [categoryId, setCategoryId] = useState<number | "">("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<"paid" | "unpaid">("paid");
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState("");
 
@@ -51,6 +52,7 @@ export function ParentDashboard() {
     setEditingId(null);
     setAmount("");
     setNote("");
+    setPaymentStatus("paid");
   }
 
   useEffect(() => {
@@ -86,6 +88,7 @@ export function ParentDashboard() {
     setCategoryId(t.categoryId);
     setAmount(String(t.amount).replace(".", ","));
     setNote(t.note ?? "");
+    setPaymentStatus(t.paymentStatus === "unpaid" ? "unpaid" : "paid");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -100,6 +103,7 @@ export function ParentDashboard() {
         amount: Number(amount.replace(",", ".")),
         note: note.trim() || undefined,
         userId: Number(targetChildId),
+        paymentStatus,
       });
       setFlash("Movimento atualizado!");
       resetForm();
@@ -168,6 +172,9 @@ export function ParentDashboard() {
           >
             <span className="child-name">{c.displayName}</span>
             <span className="child-balance">{formatEuro(c.balance)}</span>
+            {c.unpaidTotal > 0 && (
+              <span className="child-unpaid">Por pagar: {formatEuro(c.unpaidTotal)}</span>
+            )}
             <span className="hint">{filterId === c.id ? "A filtrar" : "Ver movimentos"}</span>
           </button>
         ))}
@@ -230,6 +237,16 @@ export function ParentDashboard() {
             </select>
           </label>
           <label>
+            Estado
+            <select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value as "paid" | "unpaid")}
+            >
+              <option value="paid">Pago</option>
+              <option value="unpaid">Por pagar</option>
+            </select>
+          </label>
+          <label>
             Nota (opcional)
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="ex.: gelado" />
           </label>
@@ -262,6 +279,9 @@ export function ParentDashboard() {
                   <div>
                     <strong>
                       {t.displayName} · {t.categoryName}
+                      {t.paymentStatus === "unpaid" && (
+                        <span className="badge unpaid">Por pagar</span>
+                      )}
                     </strong>
                     <span>{formatDate(t.createdAt)}</span>
                     {t.note && <em>{t.note}</em>}
