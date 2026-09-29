@@ -113,6 +113,13 @@ body {
   gap: 1rem;
 }
 
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
 .balance-hero {
   background: var(--surface);
   border-radius: var(--radius);
@@ -477,6 +484,160 @@ body {
 
 .login-page {
   padding-top: 2.5rem;
+}
+
+.btn.link.create-cat {
+  align-self: flex-start;
+  color: #1a4d6d;
+  padding-left: 0;
+}
+
+.category-create {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #f3f7fa;
+}
+
+.category-create label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.category-create input {
+  font: inherit;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1.5px solid #d5dee4;
+}
+
+.period-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.period-tab {
+  font: inherit;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 0.4rem;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+
+.period-tab.active {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.report-summary {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.summary-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.95rem 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.summary-card span {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.summary-card strong {
+  font-family: "Nunito", sans-serif;
+  font-size: 1.25rem;
+}
+
+.summary-card.income strong {
+  color: var(--income);
+}
+
+.summary-card.expense strong {
+  color: var(--expense);
+}
+
+.summary-card.unpaid strong {
+  color: #b45309;
+}
+
+.report-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.report-bars li {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 6px 18px rgba(8, 28, 42, 0.12);
+}
+
+.report-bar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.report-bar-head span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.report-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e8eef2;
+  overflow: hidden;
+}
+
+.report-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.report-bar-fill.income {
+  background: linear-gradient(90deg, #34c98a, #1f9d6a);
+}
+
+.report-bar-fill.expense {
+  background: linear-gradient(90deg, #f07272, #d64545);
+}
+
+.inline-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.inline-select select {
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: none;
 }
 
 @media (min-width: 480px) {

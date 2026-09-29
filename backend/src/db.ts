@@ -110,3 +110,72 @@ export function getUnpaidTotal(userId: number): number {
 
   return Math.round(row.total * 100) / 100;
 }
+
+export type ReportPeriod = "month" | "3months" | "all";
+
+export function getPeriodStart(period: ReportPeriod): string | null {
+  if (period === "month") {
+    return (db.prepare(`SELECT datetime('now', 'start of month') AS d`).get() as { d: string }).d;
+  }
+  if (period === "3months") {
+    return (db.prepare(`SELECT datetime('now', '-3 months') AS d`).get() as { d: string }).d;
+  }
+  return null;
+}
+
+export function getReport(userId: number, period: ReportPeriod) {
+  const from = getPeriodStart(period);
+  const dateFilter = from ? "AND t.created_at >= ?" : "";
+  const params = from ? [userId, from] : [userId];
+
+  const byCategory = db
+    .prepare(
+      `
+      SELECT c.id AS categoryId, c.name AS name, c.type AS type,
+             COALESCE(SUM(t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      WHERE t.user_id = ? AND t.payment_status = 'paid' ${dateFilter}
+      GROUP BY c.id, c.name, c.type
+      ORDER BY total DESC
+    `
+    )
+    .all(...params) as {
+    categoryId: number;
+    name: string;
+    type: "income" | "expense";
+    total: number;
+  }[];
+
+  const incomeByCategory = byCategory
+    .filter((r) => r.type === "income")
+    .map((r) => ({ categoryId: r.categoryId, name: r.name, total: Math.round(r.total * 100) / 100 }));
+  const expenseByCategory = byCategory
+    .filter((r) => r.type === "expense")
+    .map((r) => ({ categoryId: r.categoryId, name: r.name, total: Math.round(r.total * 100) / 100 }));
+
+  const incomeTotal = incomeByCategory.reduce((s, r) => s + r.total, 0);
+  const expenseTotal = expenseByCategory.reduce((s, r) => s + r.total, 0);
+
+  const unpaidParams = from ? [userId, from] : [userId];
+  const unpaidRow = db
+    .prepare(
+      `
+      SELECT COALESCE(SUM(t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      WHERE t.user_id = ? AND t.payment_status = 'unpaid' AND c.type = 'expense' ${dateFilter}
+    `
+    )
+    .get(...unpaidParams) as { total: number };
+
+  return {
+    period,
+    from,
+    incomeTotal: Math.round(incomeTotal * 100) / 100,
+    expenseTotal: Math.round(expenseTotal * 100) / 100,
+    unpaidTotal: Math.round(unpaidRow.total * 100) / 100,
+    incomeByCategory,
+    expenseByCategory,
+  };
+}

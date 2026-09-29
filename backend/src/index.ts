@@ -4,7 +4,8 @@ import bcrypt from "bcryptjs";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { db, initSchema, getBalance, getUnpaidTotal } from "./db.js";
+import { db, initSchema, getBalance, getUnpaidTotal, getReport } from "./db.js";
+import type { ReportPeriod } from "./db.js";
 import { AuthedRequest, requireAuth, requireParent, signToken } from "./auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -122,6 +123,74 @@ app.get("/api/categories", requireAuth, (req, res) => {
     rows = db.prepare("SELECT id, name, type FROM categories ORDER BY type, name").all();
   }
   res.json(rows);
+});
+
+app.post("/api/categories", requireAuth, (req: AuthedRequest, res) => {
+  const { name, type } = req.body as { name?: string; type?: string };
+  const trimmed = name?.trim() ?? "";
+
+  if (!trimmed) {
+    return res.status(400).json({ error: "Indica o nome da categoria" });
+  }
+  if (type !== "income" && type !== "expense") {
+    return res.status(400).json({ error: "Tipo inválido (income ou expense)" });
+  }
+  if (trimmed.length > 40) {
+    return res.status(400).json({ error: "Nome demasiado longo (máx. 40)" });
+  }
+
+  const existing = db
+    .prepare("SELECT id FROM categories WHERE lower(name) = lower(?) AND type = ?")
+    .get(trimmed, type);
+  if (existing) {
+    return res.status(409).json({ error: "Já existe uma categoria com este nome" });
+  }
+
+  const result = db
+    .prepare("INSERT INTO categories (name, type) VALUES (?, ?)")
+    .run(trimmed, type);
+
+  const created = db
+    .prepare("SELECT id, name, type FROM categories WHERE id = ?")
+    .get(result.lastInsertRowid);
+
+  res.status(201).json(created);
+});
+
+app.get("/api/reports", requireAuth, (req: AuthedRequest, res) => {
+  const user = req.user!;
+  const periodRaw = (req.query.period as string) || "month";
+  const period: ReportPeriod =
+    periodRaw === "3months" || periodRaw === "all" || periodRaw === "month"
+      ? periodRaw
+      : "month";
+
+  let targetUserId = user.id;
+  if (user.role === "parent") {
+    const requested = req.query.userId ? Number(req.query.userId) : undefined;
+    if (!requested) {
+      return res.status(400).json({ error: "Indica a filha (userId)" });
+    }
+    const child = db
+      .prepare("SELECT id FROM users WHERE id = ? AND role = 'child'")
+      .get(requested);
+    if (!child) {
+      return res.status(400).json({ error: "Filha inválida" });
+    }
+    targetUserId = requested;
+  } else if (req.query.userId && Number(req.query.userId) !== user.id) {
+    return res.status(403).json({ error: "Só podes ver o teu relatório" });
+  }
+
+  const child = db
+    .prepare("SELECT id, display_name FROM users WHERE id = ?")
+    .get(targetUserId) as { id: number; display_name: string };
+
+  res.json({
+    userId: child.id,
+    displayName: child.display_name,
+    ...getReport(targetUserId, period),
+  });
 });
 
 const TX_SELECT = `

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   childAccent,
   createTransaction,
@@ -11,6 +12,7 @@ import {
 } from "./api";
 import { useAuth } from "./AuthContext";
 import { ChangePasswordPanel } from "./ChangePasswordPanel";
+import { CategoryCreator } from "./CategoryCreator";
 
 type Mode = "income" | "expense" | null;
 
@@ -87,9 +89,14 @@ export function ChildHome() {
           <p className="eyebrow">Olá</p>
           <h1>{user?.displayName}</h1>
         </div>
-        <button type="button" className="btn ghost" onClick={logout}>
-          Sair
-        </button>
+        <div className="topbar-actions">
+          <Link to="/relatorios" className="btn ghost">
+            Relatórios
+          </Link>
+          <button type="button" className="btn ghost" onClick={logout}>
+            Sair
+          </button>
+        </div>
       </header>
 
       <section
@@ -146,6 +153,15 @@ export function ChildHome() {
               ))}
             </select>
           </label>
+          <CategoryCreator
+            type={mode}
+            onCreated={(created) => {
+              setCategories((prev) =>
+                [...prev, created].sort((a, b) => a.name.localeCompare(b.name, "pt"))
+              );
+              setCategoryId(created.id);
+            }}
+          />
           <label>
             Estado
             <select

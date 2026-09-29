@@ -81,9 +81,9 @@ O Vite faz proxy de `/api` para o backend.
 
 ## Funcionalidades
 
-**Filha:** adicionar receitas/despesas, ver saldo e histórico; alterar a própria palavra-passe.
+**Filha:** adicionar receitas/despesas, criar categorias, ver saldo/histórico e relatórios; alterar a própria palavra-passe.
 
-**Pais:** ver saldos, editar ou apagar movimentos, filtrar histórico; alterar a própria palavra-passe.
+**Pais:** ver saldos, editar ou apagar movimentos, filtrar histórico, ver relatórios; alterar a própria palavra-passe.
 
 ## Estrutura
 

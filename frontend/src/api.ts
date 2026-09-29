@@ -109,6 +109,39 @@ export function fetchCategories(type?: "income" | "expense") {
   return api<Category[]>(`/api/categories${q}`);
 }
 
+export function createCategory(name: string, type: "income" | "expense") {
+  return api<Category>("/api/categories", {
+    method: "POST",
+    body: JSON.stringify({ name, type }),
+  });
+}
+
+export type ReportPeriod = "month" | "3months" | "all";
+
+export type ReportCategoryTotal = {
+  categoryId: number;
+  name: string;
+  total: number;
+};
+
+export type Report = {
+  userId: number;
+  displayName: string;
+  period: ReportPeriod;
+  from: string | null;
+  incomeTotal: number;
+  expenseTotal: number;
+  unpaidTotal: number;
+  incomeByCategory: ReportCategoryTotal[];
+  expenseByCategory: ReportCategoryTotal[];
+};
+
+export function fetchReport(period: ReportPeriod, userId?: number) {
+  const params = new URLSearchParams({ period });
+  if (userId != null) params.set("userId", String(userId));
+  return api<Report>(`/api/reports?${params}`);
+}
+
 export function fetchTransactions(userId?: number) {
   const q = userId != null ? `?userId=${userId}` : "";
   return api<Transaction[]>(`/api/transactions${q}`);

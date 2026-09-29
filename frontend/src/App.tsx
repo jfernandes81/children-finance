@@ -1,10 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { ChildHome } from "./ChildHome";
 import { LoginPage } from "./LoginPage";
 import { ParentDashboard } from "./ParentDashboard";
+import { ReportsPage } from "./ReportsPage";
 
-function Protected() {
+function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -16,7 +18,12 @@ function Protected() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "parent") return <ParentDashboard />;
+  return <>{children}</>;
+}
+
+function Home() {
+  const { user } = useAuth();
+  if (user?.role === "parent") return <ParentDashboard />;
   return <ChildHome />;
 }
 
@@ -26,7 +33,23 @@ export default function App() {
       <div className="app-shell">
         <Routes>
           <Route path="/login" element={<LoginGate />} />
-          <Route path="/*" element={<Protected />} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/relatorios"
+            element={
+              <RequireAuth>
+                <ReportsPage />
+              </RequireAuth>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </AuthProvider>
